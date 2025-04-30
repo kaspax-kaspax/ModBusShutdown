@@ -1,0 +1,21 @@
+modbus:
+  ip: "192.168.11.72"
+  port: 502
+  slave_id: 100
+  register: 843
+  register_type: "input"
+
+threshold: 20
+poll_interval: "1m"
+
+
+log_file: "modbus-shutdown.log"
+
+email:
+  smtp_server: "smtp-relay.brevo.com"
+  smtp_port: 587
+  username: "your@email.com"
+  password: "your-smtp-password"
+  from: "your@email.com"
+  to: "admin@example.com"
+  subject: "CRITICAL: UPS Battery Low - Shutdown Initiated"
