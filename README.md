@@ -83,13 +83,13 @@ go mod tidy
 ### 3. Build the app:
 
 ```bash
-go build -o modbus-guard
+go build
 ```
 
 ### 4. Run:
 
 ```bash
-./modbus-guard
+./ModBusShutdown
 ```
 
 Ensure `config.yaml` is in the **same directory** as the binary.
