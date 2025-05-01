@@ -18,7 +18,10 @@ func runTestMode(config *Config, client modbus.Client) {
 	log.Printf("Battery level: %d%%", level)
 
 	testMsg := fmt.Sprintf("Test mode: Battery level read as %d%%. Email is being sent as a test.", level)
-	sendEmail(*config, testMsg)
+	err = sendEmail(*config, testMsg)
+	if err != nil {
+		log.Fatalf("Test failed: could not send email: %v", err)
+	}
 
-	log.Println("Test completed successfully.")
+	log.Println("!!! TEST SUCCESS: Battery read and email sent successfully !!!")
 }

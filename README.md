@@ -49,12 +49,12 @@ modbus:
   register_type: "input"    # "input" or "holding"
 
 threshold: 20               # Battery level shutdown threshold (%)
-poll_interval: "30s"        # Time between polling cycles. For minutes "m", hours - "h"
+poll_interval: "30s"        # Time between polling cycles. For minutes - "m", hours - "h"
 log_file: "modbus-shutdown.log"
 
 email:
   smtp_server: "smtp.example.com"
-  smtp_port: 587                    #Can be empty (25 without auth, 587 with auth)
+  smtp_port: 587                    #Can be empty (default settings - 25 without auth, 587 with auth)
   username: "your@email.com"        #If empty then switch to no auth mode (by default port 25)
   password: "your-smtp-password"    #If empty then switch to no auth mode (by default port 25)
   from: "your@email.com"
@@ -104,7 +104,7 @@ You can start by pointing to a known test register or log responses only by sett
 
 ## 🔢 Test Mode
 
-You can run the app in **test mode** using the `--test` flag. This is useful for verifying:
+You can run the app in **test mode** using the `ModBusShutdown.exe --test` flag. This is useful for verifying:
 
 - Your Modbus connection works
 - The battery level can be read

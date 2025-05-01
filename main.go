@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/smtp"
 	"os"
@@ -57,10 +58,12 @@ func setupLogging(file string) {
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
-	log.SetOutput(f)
+
+	mw := io.MultiWriter(os.Stdout, f)
+	log.SetOutput(mw)
 }
 
-func sendEmail(cfg Config, message string) {
+func sendEmail(cfg Config, message string) error {
 	port := cfg.Email.SMTPPort
 	if port == 0 {
 		if cfg.Email.Username == "" {
@@ -82,10 +85,10 @@ func sendEmail(cfg Config, message string) {
 
 	err := smtp.SendMail(addr, auth, cfg.Email.From, []string{cfg.Email.To}, msg)
 	if err != nil {
-		log.Printf("Email failed: %v", err)
-	} else {
-		log.Println("Notification email sent.")
+		return fmt.Errorf("email failed: %w", err)
 	}
+
+	return nil
 }
 
 func shutdownSystem() {
@@ -155,6 +158,11 @@ func main() {
 
 	if *testMode {
 		runTestMode(config, client)
+		return
+	}
+
+	if runColdStartMode(config, client) {
+		log.Println("Cold start recovery successful. Skipping shutdown loop.")
 		return
 	}
 
