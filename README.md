@@ -29,6 +29,7 @@ A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**
 ModBusShutdown/
 ├── main.go          # Application source
 ├── testmode.go      # Application test mode source
+├── coldstart.go     # Application coldstart mode source
 ├── config.yaml      # External config file
 ├── go.mod
 └── README.md
