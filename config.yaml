@@ -1,5 +1,5 @@
 modbus:
-  ip: "192.168.11.72"
+  ip: "192.168.1.1"
   port: 502
   slave_id: 100
   register: 843
