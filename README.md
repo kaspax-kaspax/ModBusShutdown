@@ -28,6 +28,7 @@ A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**
 ```
 modbus-guard/
 ├── main.go          # Application source
+├── testmode.go      # Application test mode source
 ├── config.yaml      # External config file
 ├── go.mod
 └── README.md
@@ -53,9 +54,9 @@ log_file: "modbus-shutdown.log"
 
 email:
   smtp_server: "smtp.example.com"
-  smtp_port: 587
-  username: "your@email.com"
-  password: "your-smtp-password"
+  smtp_port: 587                    #Can be empty (25 without auth, 587 with auth)
+  username: "your@email.com"        #If empty then switch to no auth mode (by default port 25)
+  password: "your-smtp-password"    #If empty then switch to no auth mode (by default port 25)
   from: "your@email.com"
   to: "admin@example.com"
   subject: "CRITICAL: Battery Low - System Shutdown"
@@ -96,7 +97,18 @@ Ensure `config.yaml` is in the **same directory** as the binary.
 
 ## 🥪 Test the Configuration
 
+
 You can start by pointing to a known test register or log responses only by setting the threshold very low (e.g., 5) and monitoring the log file.
+
+---
+
+## 🔢 Test Mode
+
+You can run the app in **test mode** using the `--test` flag. This is useful for verifying:
+
+- Your Modbus connection works
+- The battery level can be read
+- The email notification system is functioning
 
 ---
 
@@ -133,6 +145,6 @@ Use at your own risk. This tool initiates system shutdowns — test carefully be
 
 ## 📬 Contact
 
-Created by **Kaspax**
+Created by **kaspax**
 📧 [kaspax@gmail.com](mailto:kaspax@gmail.com)
 

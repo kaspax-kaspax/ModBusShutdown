@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"log"
 	"net/smtp"
@@ -20,7 +21,7 @@ type Config struct {
 		Port         int    `yaml:"port"`
 		SlaveID      byte   `yaml:"slave_id"`
 		Register     uint16 `yaml:"register"`
-		RegisterType string `yaml:"register_type"` // "input" or "holding"
+		RegisterType string `yaml:"register_type"`
 	} `yaml:"modbus"`
 
 	Threshold    int           `yaml:"threshold"`
@@ -47,6 +48,7 @@ func loadConfig(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
+	config.PollInterval = config.PollInterval * time.Second
 	return &config, nil
 }
 
@@ -59,8 +61,20 @@ func setupLogging(file string) {
 }
 
 func sendEmail(cfg Config, message string) {
-	auth := smtp.PlainAuth("", cfg.Email.Username, cfg.Email.Password, cfg.Email.SMTPServer)
-	addr := fmt.Sprintf("%s:%d", cfg.Email.SMTPServer, cfg.Email.SMTPPort)
+	port := cfg.Email.SMTPPort
+	if port == 0 {
+		if cfg.Email.Username == "" {
+			port = 25
+		} else {
+			port = 587
+		}
+	}
+	addr := fmt.Sprintf("%s:%d", cfg.Email.SMTPServer, port)
+
+	var auth smtp.Auth = nil
+	if cfg.Email.Username != "" && cfg.Email.Password != "" {
+		auth = smtp.PlainAuth("", cfg.Email.Username, cfg.Email.Password, cfg.Email.SMTPServer)
+	}
 
 	msg := []byte("To: " + cfg.Email.To + "\r\n" +
 		"Subject: " + cfg.Email.Subject + "\r\n" +
@@ -116,6 +130,9 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 }
 
 func main() {
+	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
+	flag.Parse()
+
 	config, err := loadConfig("config.yaml")
 	if err != nil {
 		log.Fatalf("Failed to load config.yaml: %v", err)
@@ -135,6 +152,11 @@ func main() {
 	defer handler.Close()
 
 	client := modbus.NewClient(handler)
+
+	if *testMode {
+		runTestMode(config, client)
+		return
+	}
 
 	for {
 		level, err := readBatteryLevel(client, config.Modbus.Register, config.Modbus.RegisterType)
