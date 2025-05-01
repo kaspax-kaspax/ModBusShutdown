@@ -26,7 +26,7 @@ A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**
 ## 📁 File Structure
 
 ```
-modbus-guard/
+ModBusShutdown/
 ├── main.go          # Application source
 ├── testmode.go      # Application test mode source
 ├── config.yaml      # External config file
@@ -117,7 +117,7 @@ You can run the app in **test mode** using the `--test` flag. This is useful for
 Use [nssm](https://nssm.cc/) to install as a background Windows service:
 
 ```bash
-nssm install ModbusGuard "C:\Path\To\modbus-guard.exe"
+nssm install ModbusGuard "C:\Path\To\ModBusShutdown.exe"
 ```
 
 ---
