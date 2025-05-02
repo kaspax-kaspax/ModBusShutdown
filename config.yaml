@@ -6,7 +6,7 @@ modbus:
   register_type: "input"
 
 threshold: 20
-poll_interval: "1m"
+poll_interval: 5
 
 
 log_file: "modbus-shutdown.log"

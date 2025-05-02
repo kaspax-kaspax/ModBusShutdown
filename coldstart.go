@@ -93,7 +93,7 @@ func runColdStartMode(config *Config, client modbus.Client) bool {
 				}
 
 				lastLevel = level
-				time.Sleep(config.PollInterval)
+				time.Sleep(time.Duration(config.PollIntervalSeconds) * time.Second)
 			}
 		}
 	}

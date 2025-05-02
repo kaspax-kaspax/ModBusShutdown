@@ -27,10 +27,11 @@ A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**
 
 ```
 ModBusShutdown/
-├── main.go          # Application source
-├── testmode.go      # Application test mode source
-├── coldstart.go     # Application coldstart mode source
-├── config.yaml      # External config file
+├── main.go                 # Application source
+├── testmode.go             # Application test mode source
+├── coldstart.go            # Application coldstart mode source
+├── configValidation.go     # config.yaml file validation
+├── config.yaml             # External config file
 ├── go.mod
 └── README.md
 ```
@@ -50,7 +51,7 @@ modbus:
   register_type: "input"    # "input" or "holding"
 
 threshold: 20               # Battery level shutdown threshold (%)
-poll_interval: "30s"        # Time between polling cycles. For minutes - "m", hours - "h"
+poll_interval: 30           # Time between polling cycles in seconds.
 log_file: "modbus-shutdown.log"
 
 email:

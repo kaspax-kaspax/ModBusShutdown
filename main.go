@@ -25,9 +25,9 @@ type Config struct {
 		RegisterType string `yaml:"register_type"`
 	} `yaml:"modbus"`
 
-	Threshold    int           `yaml:"threshold"`
-	PollInterval time.Duration `yaml:"poll_interval"`
-	LogFile      string        `yaml:"log_file"`
+	Threshold           int    `yaml:"threshold"`
+	PollIntervalSeconds int    `yaml:"poll_interval"`
+	LogFile             string `yaml:"log_file"`
 
 	Email struct {
 		SMTPServer string `yaml:"smtp_server"`
@@ -49,7 +49,6 @@ func loadConfig(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, err
 	}
-	config.PollInterval = config.PollInterval * time.Second
 	return &config, nil
 }
 
@@ -150,6 +149,10 @@ func main() {
 		log.Fatalf("Failed to load config.yaml: %v", err)
 	}
 
+	if err := validateConfig(config); err != nil {
+		log.Fatalf("Invalid configuration: %v", err)
+	}
+
 	setupLogging(config.LogFile)
 	log.Println("=== Modbus Shutdown Monitor Started ===")
 
@@ -184,6 +187,7 @@ func main() {
 	}
 
 	for {
+		log.Println("Checking battery level...")
 		level, err := readBatteryLevel(client, config.Modbus.Register, config.Modbus.RegisterType)
 		if err != nil {
 			log.Printf("Error reading battery level: %v", err)
@@ -196,6 +200,7 @@ func main() {
 				break
 			}
 		}
-		time.Sleep(config.PollInterval)
+		time.Sleep(time.Duration(config.PollIntervalSeconds) * time.Second)
+
 	}
 }
