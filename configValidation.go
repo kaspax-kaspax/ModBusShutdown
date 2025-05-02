@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 )
 
 func validateConfig(cfg *Config) error {
 	// Check essential Modbus values
-	if cfg.Modbus.IP == "" {
-		return fmt.Errorf("modbus.ip is required")
+	if _, err := net.LookupHost(cfg.Modbus.IP); err != nil {
+		return fmt.Errorf("modbus.ip or hostname cannot be resolved: %q (%v)", cfg.Modbus.IP, err)
 	}
 	if cfg.Modbus.Port == 0 {
 		return fmt.Errorf("modbus.port must be set")

@@ -44,7 +44,7 @@ ModBusShutdown/
 
 ```yaml
 modbus:
-  ip: "192.168.1.100"       # Inverter IP address
+  ip: "192.168.1.100"       # Inverter IP address or FQDN
   port: 502                 # Modbus TCP port (default: 502)
   slave_id: 1               # Modbus Unit ID
   register: 100             # Register holding battery %
