@@ -106,12 +106,20 @@ You can start by pointing to a known test register or log responses only by sett
 
 ## 🔢 Test Mode
 
-You can run the app in **test mode** using the `ModBusShutdown.exe --test` flag. This is useful for verifying:
+You can run the app in **test mode** using the `ModBusShutdown.exe --test` ModBusShutdown.exe --testflag. This is useful for verifying:
 
 - Your Modbus connection works
 - The battery level can be read
 - The email notification system is functioning
 
+You can run the app in **test mode** using the `ModBusShutdown.exe --testmail` ModBusShutdown.exe --testflag. This is useful for verifying:
+
+- The email notification system is functioning
+
+You can run the app in **test mode** using the `ModBusShutdown.exe --testmodbuss` ModBusShutdown.exe --testflag. This is useful for verifying:
+
+- Your Modbus connection works
+- The battery level can be read
 ---
 
 ## 🔁 Running as a Service (Windows)
