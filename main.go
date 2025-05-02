@@ -134,7 +134,16 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 
 func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
+	testModeMail := flag.Bool("testmail", false, "Run in test mode (check email alert)")
+	testModeModbuss := flag.Bool("testmodbuss", false, "Run in test mode (single Modbus check)")
+	showHelpLong := flag.Bool("help", false, "Show help message")
+	showHelpShort := flag.Bool("h", false, "Show help message (shorthand)")
 	flag.Parse()
+
+	if *showHelpLong || *showHelpShort {
+		flag.Usage()
+		return
+	}
 
 	config, err := loadConfig("config.yaml")
 	if err != nil {
@@ -158,6 +167,14 @@ func main() {
 
 	if *testMode {
 		runTestMode(config, client)
+		return
+	}
+	if *testModeMail {
+		runTestModeMail(config)
+		return
+	}
+	if *testModeModbuss {
+		runTestModeModbuss(config, client)
 		return
 	}
 
