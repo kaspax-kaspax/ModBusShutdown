@@ -131,6 +131,10 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 	return int(value), nil
 }
 
+func getHostname() (string, error) {
+	return os.Hostname()
+}
+
 func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
 	testModeMail := flag.Bool("testmail", false, "Run in test mode (check email alert)")
@@ -195,7 +199,8 @@ func main() {
 			log.Printf("Battery level: %d%%", level)
 			if level <= config.Threshold {
 				log.Printf("Battery level critical: %d%%", level)
-				sendEmail(*config, fmt.Sprintf("Battery level is %d%%. System shutdown is starting.", level))
+				hostname, _ := os.Hostname()
+				sendEmail(*config, fmt.Sprintf("Battery level is %d%%. System %s shutdown is starting.", level, hostname))
 				shutdownSystem()
 				break
 			}

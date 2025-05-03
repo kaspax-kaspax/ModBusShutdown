@@ -138,6 +138,27 @@ All status and errors are written to the file defined in `log_file` (e.g., `modb
 
 ---
 
+## 🔌 Cold Start Detection (Power Restore Protection)
+
+When a system boots after a power outage, the battery level may still be below the shutdown threshold, even though charging has resumed. To prevent immediate shutdown during this scenario, the Cold Start Mode adds smart recovery logic:
+
+🔍 What It Does
+    Detects recent boot using system uptime (less than 3 minutes)
+    Reads battery level, then waits and monitors for a short period
+    Suppresses shutdown if battery level increases (indicating charging)
+    Fails safely (continues to shutdown) if battery does not improve or drops further
+
+🧠 How It Works
+    On startup, if the battery is below the configured threshold:
+    The app checks system uptime.
+    If uptime is under 3 minutes:
+    The system is likely recovering from power loss.
+    The app monitors the battery level for up to 15 minutes.
+    If the battery is charging (level increases), shutdown is postponed.
+    If the battery does not improve or drops further, the system shuts down normally.
+
+---
+
 ## 🔐 Notes
 
 - Make sure your Modbus register is accessible via TCP (not RTU).

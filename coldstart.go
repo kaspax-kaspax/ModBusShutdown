@@ -67,7 +67,7 @@ func runColdStartMode(config *Config, client modbus.Client) bool {
 			log.Println("System recently started. Monitoring battery for recovery...")
 
 			start := time.Now()
-			maxWait := 10 * time.Minute
+			maxWait := 15 * time.Minute
 
 			for {
 				level, err = readBatteryLevel(client, config.Modbus.Register, config.Modbus.RegisterType)
@@ -91,7 +91,7 @@ func runColdStartMode(config *Config, client modbus.Client) bool {
 					log.Println("Cold start wait time exceeded. Proceeding to shutdown.")
 					return false
 				}
-
+				log.Printf("Battery level: %d%%", level)
 				lastLevel = level
 				time.Sleep(time.Duration(config.PollIntervalSeconds) * time.Second)
 			}
