@@ -1,10 +1,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/goburrow/modbus"
 )
@@ -48,18 +46,4 @@ func runTestModeModbuss(config *Config, client modbus.Client) {
 	}
 	log.Printf("Battery level: %d%%", level)
 	log.Println("!!! TEST SUCCESS: Battery read !!!")
-}
-
-func init() {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Usage of %s:
-
-  --test         Run full test: read battery from Modbus and send email
-  --testmail     Send a test email only
-  --testmodbus   Read battery from Modbus only (no email)
-  --help         Show this help message
-
-`, os.Args[0])
-		flag.PrintDefaults()
-	}
 }

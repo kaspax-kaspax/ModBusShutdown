@@ -131,24 +131,15 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 	return int(value), nil
 }
 
-func getHostname() (string, error) {
-	return os.Hostname()
-}
-
 func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
 	testModeMail := flag.Bool("testmail", false, "Run in test mode (check email alert)")
-	testModeModbuss := flag.Bool("testmodbuss", false, "Run in test mode (single Modbus check)")
-	showHelpLong := flag.Bool("help", false, "Show help message")
-	showHelpShort := flag.Bool("h", false, "Show help message (shorthand)")
+	testModeModbus := flag.Bool("testmodbus", false, "Run in test mode (single Modbus check)")
+	configPath := flag.String("config", "config.yaml", "Path to configuration file. Example: -config=\"C:\\Modbus\\config\\config.yaml\"")
+
 	flag.Parse()
 
-	if *showHelpLong || *showHelpShort {
-		flag.Usage()
-		return
-	}
-
-	config, err := loadConfig("config.yaml")
+	config, err := loadConfig(*configPath)
 	if err != nil {
 		log.Fatalf("Failed to load config.yaml: %v", err)
 	}
@@ -180,7 +171,7 @@ func main() {
 		runTestModeMail(config)
 		return
 	}
-	if *testModeModbuss {
+	if *testModeModbus {
 		runTestModeModbuss(config, client)
 		return
 	}

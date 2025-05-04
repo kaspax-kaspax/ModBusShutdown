@@ -104,22 +104,53 @@ You can start by pointing to a known test register or log responses only by sett
 
 ---
 
-## 🔢 Test Mode
+Sure! Here's a clean and corrected rewrite of that README section to explain **all available startup options**, including `--test`, `--config`, and separating test scenarios clearly:
 
-You can run the app in **test mode** using the `ModBusShutdown.exe --test` ModBusShutdown.exe --testflag. This is useful for verifying:
+---
 
-- Your Modbus connection works
-- The battery level can be read
-- The email notification system is functioning
+## 🧭 Application Start Options
 
-You can run the app in **test mode** using the `ModBusShutdown.exe --testmail` ModBusShutdown.exe --testflag. This is useful for verifying:
+You can run the `ModBusShutdown` application with different command-line flags to control behavior:
 
-- The email notification system is functioning
+### ▶️ Default Mode (normal operation)
+```bash
+ModBusShutdown.exe
+```
+- Starts the monitoring loop
+- Continuously checks battery level
+- Sends alert email and shuts down system if threshold is reached
 
-You can run the app in **test mode** using the `ModBusShutdown.exe --testmodbuss` ModBusShutdown.exe --testflag. This is useful for verifying:
+---
 
-- Your Modbus connection works
-- The battery level can be read
+### 🧪 Test Mode (Modbus + Email)
+```bash
+ModBusShutdown.exe --test
+```
+- Loads configuration
+- Connects to Modbus device
+- Reads current battery level
+- Sends a test email
+- Logs and prints results to console
+- **Does not shut down or loop**
+
+---
+
+### ⚙️ Custom Configuration File
+```bash
+ModBusShutdown.exe --config="C:/path/to/custom.yaml"
+```
+- Uses an alternate configuration file path instead of the default `config.yaml`
+
+---
+
+### 🔀 Combined Example
+```bash
+ModBusShutdown.exe --config="C:/configs/test.yaml" --test
+```
+- Loads config from `test.yaml`
+- Runs a one-time battery check + email alert
+- Useful for staging environments or isolated testing
+
 ---
 
 ## 🔁 Running as a Service (Windows)
