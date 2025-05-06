@@ -44,11 +44,13 @@ ModBusShutdown/
 
 ```yaml
 modbus:
-  ip: "192.168.1.100"       # Inverter IP address or FQDN
-  port: 502                 # Modbus TCP port (default: 502)
-  slave_id: 1               # Modbus Unit ID
-  register: 100             # Register holding battery %
-  register_type: "input"    # "input" or "holding"
+  ip: "192.168.1.100"             # Inverter IP address or FQDN
+  port: 502                       # Modbus TCP port (default: 502)
+  slave_id: 1                     # Modbus Unit ID
+  battery_register: 100           # Register holding battery %
+  register_type: "input"          # "input" or "holding"
+  input_register: 829             # Register holding input source
+  not_connected_input_value: 240  # Input source value "Not connected"
 
 threshold: 20               # Battery level shutdown threshold (%)
 poll_interval: 30           # Time between polling cycles in seconds.
@@ -130,6 +132,7 @@ ModBusShutdown.exe --test
 - Loads configuration
 - Connects to Modbus device
 - Reads current battery level
+- Reads grid state
 - Sends a test email
 - Logs and prints results to console
 - **Does not shut down or loop**

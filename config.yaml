@@ -2,12 +2,14 @@ modbus:
   ip: "192.168.1.1"
   port: 502
   slave_id: 100
-  register: 843
+  battery_register: 843
   register_type: "input"
+  input_register: 829
+  not_connected_input_value: 240
 
 threshold: 20
 poll_interval: 5
-alertthreshold: 85
+alert_threshold: 85
 
 
 log_file: "modbus-shutdown.log"

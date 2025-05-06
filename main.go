@@ -18,16 +18,18 @@ import (
 
 type Config struct {
 	Modbus struct {
-		IP           string `yaml:"ip"`
-		Port         int    `yaml:"port"`
-		SlaveID      byte   `yaml:"slave_id"`
-		Register     uint16 `yaml:"register"`
-		RegisterType string `yaml:"register_type"`
+		IP                   string `yaml:"ip"`
+		Port                 int    `yaml:"port"`
+		SlaveID              byte   `yaml:"slave_id"`
+		BatteryRegister      uint16 `yaml:"battery_register"`
+		RegisterType         string `yaml:"register_type"`
+		InputRegister        uint16 `yaml:"input_register"`
+		NotConnectedRegister uint16 `yaml:"not_connected_input_value"`
 	} `yaml:"modbus"`
 
 	Threshold           int    `yaml:"threshold"`
 	PollIntervalSeconds int    `yaml:"poll_interval"`
-	AlertThreshold      int    `yaml:"alertthreshold"`
+	AlertThreshold      int    `yaml:"alert_threshold"`
 	LogFile             string `yaml:"log_file"`
 
 	Email struct {
@@ -51,6 +53,13 @@ func loadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 	return &config, nil
+}
+
+func isGridMonitored(config *Config) bool {
+	if config.Modbus.InputRegister == 0 || config.Modbus.NotConnectedRegister == 0 {
+		return false
+	}
+	return true
 }
 
 func setupLogging(file string) {
@@ -132,6 +141,34 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 	return int(value), nil
 }
 
+func readGridState(client modbus.Client, register uint16, regType string, NotConnectedRegister uint16) (bool, error) {
+	var result []byte
+	var err error
+
+	switch regType {
+	case "input":
+		result, err = client.ReadInputRegisters(register, 1)
+	case "holding":
+		result, err = client.ReadHoldingRegisters(register, 1)
+	default:
+		return false, fmt.Errorf("invalid register_type: %s", regType)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(result) < 2 {
+		return false, fmt.Errorf("invalid response length")
+	}
+
+	value := binary.BigEndian.Uint16(result)
+	if value == NotConnectedRegister {
+		return false, nil
+	}
+	return true, nil
+}
+
 func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
 	testModeMail := flag.Bool("testmail", false, "Run in test mode (check email alert)")
@@ -193,7 +230,7 @@ func main() {
 
 	for {
 		log.Println("Checking battery level...")
-		level, err := readBatteryLevel(client, config.Modbus.Register, config.Modbus.RegisterType)
+		level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 		if err != nil {
 			log.Printf("Error reading battery level: %v", err)
 		} else {
