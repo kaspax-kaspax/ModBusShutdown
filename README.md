@@ -1,6 +1,6 @@
 # ⚡ Modbus Shutdown Monitor
 
-A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**, checks battery level, logs status, sends an alert email, and cleanly shuts down a Windows or Linux system when battery drops below a critical threshold.
+A lightweight Go application that monitors an inverter or UPS via **Modbus TCP**, checks battery level and grid , logs status, sends an alert email, and cleanly shuts down a Windows or Linux system when battery drops below a critical threshold.
 
 ---
 
@@ -49,8 +49,8 @@ modbus:
   slave_id: 1                     # Modbus Unit ID
   battery_register: 100           # Register holding battery %
   register_type: "input"          # "input" or "holding"
-  input_register: 829             # Register holding input source
-  not_connected_input_value: 240  # Input source value "Not connected"
+  input_register: 829             # Register holding input source (optional)
+  not_connected_input_value: 240  # Input source value "Not connected" (optional)
 
 threshold: 20               # Battery level shutdown threshold (%)
 poll_interval: 30           # Time between polling cycles in seconds.
