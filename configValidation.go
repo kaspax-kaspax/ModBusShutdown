@@ -37,7 +37,7 @@ func validateConfig(cfg *Config) error {
 	}
 
 	// Email config (optional, but warn or fail if test/email mode is used)
-	if cfg.Email.SMTPServer == "" || cfg.Email.To == "" || cfg.Email.From == "" {
+	if cfg.Email.SMTPServer == "" || len(cfg.Email.To) == 0 || cfg.Email.From == "" {
 		log.Println("Warning: email settings incomplete — email sending may fail.")
 	}
 

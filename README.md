@@ -63,7 +63,9 @@ email:
   username: "your@email.com"        #If empty then switch to no auth mode (by default port 25)
   password: "your-smtp-password"    #If empty then switch to no auth mode (by default port 25)
   from: "your@email.com"
-  to: "admin@example.com"
+  to: 
+    - "admin@example.com"
+    - "admin1@example.com"
   subject: "CRITICAL: Battery Low - System Shutdown"
 ```
 

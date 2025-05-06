@@ -20,5 +20,7 @@ email:
   username: "your@email.com"
   password: "your-smtp-password"
   from: "your@email.com"
-  to: "admin@example.com"
+  to: 
+    - "admin@example.com"
+    - "admin1@example.com"
   subject: "CRITICAL: UPS Battery Low - Shutdown Initiated"

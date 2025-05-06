@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/goburrow/modbus"
@@ -33,13 +34,13 @@ type Config struct {
 	LogFile             string `yaml:"log_file"`
 
 	Email struct {
-		SMTPServer string `yaml:"smtp_server"`
-		SMTPPort   int    `yaml:"smtp_port"`
-		Username   string `yaml:"username"`
-		Password   string `yaml:"password"`
-		From       string `yaml:"from"`
-		To         string `yaml:"to"`
-		Subject    string `yaml:"subject"`
+		SMTPServer string   `yaml:"smtp_server"`
+		SMTPPort   int      `yaml:"smtp_port"`
+		Username   string   `yaml:"username"`
+		Password   string   `yaml:"password"`
+		From       string   `yaml:"from"`
+		To         []string `yaml:"to"`
+		Subject    string   `yaml:"subject"`
 	} `yaml:"email"`
 }
 
@@ -118,11 +119,12 @@ func sendEmail(cfg Config, message string) error {
 		auth = smtp.PlainAuth("", cfg.Email.Username, cfg.Email.Password, cfg.Email.SMTPServer)
 	}
 
-	msg := []byte("To: " + cfg.Email.To + "\r\n" +
+	msg := []byte("To: " + strings.Join(cfg.Email.To, ", ") + "\r\n" +
 		"Subject: " + cfg.Email.Subject + "\r\n" +
 		"\r\n" + message + "\r\n")
 
-	err := smtp.SendMail(addr, auth, cfg.Email.From, []string{cfg.Email.To}, msg)
+	err := smtp.SendMail(addr, auth, cfg.Email.From, cfg.Email.To, msg)
+
 	if err != nil {
 		return fmt.Errorf("email failed: %w", err)
 	}
