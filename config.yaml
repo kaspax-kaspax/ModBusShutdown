@@ -7,6 +7,7 @@ modbus:
 
 threshold: 20
 poll_interval: 5
+alertthreshold: 85
 
 
 log_file: "modbus-shutdown.log"

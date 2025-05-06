@@ -27,6 +27,7 @@ type Config struct {
 
 	Threshold           int    `yaml:"threshold"`
 	PollIntervalSeconds int    `yaml:"poll_interval"`
+	AlertThreshold      int    `yaml:"alertthreshold"`
 	LogFile             string `yaml:"log_file"`
 
 	Email struct {
@@ -181,6 +182,9 @@ func main() {
 		return
 	}
 
+	AlertSend := false
+	hostname, _ := os.Hostname()
+
 	for {
 		log.Println("Checking battery level...")
 		level, err := readBatteryLevel(client, config.Modbus.Register, config.Modbus.RegisterType)
@@ -188,9 +192,19 @@ func main() {
 			log.Printf("Error reading battery level: %v", err)
 		} else {
 			log.Printf("Battery level: %d%%", level)
+			if level <= config.AlertThreshold && !AlertSend {
+				log.Printf("Battery level alert: %d%%", level)
+				sendEmail(*config, fmt.Sprintf("Battery level alert: Battery level is %d%% on %s.", level, hostname))
+				AlertSend = true
+			}
+			if level > config.AlertThreshold && AlertSend {
+				log.Printf("Battery level alert cleared: %d%%", level)
+
+				sendEmail(*config, fmt.Sprintf("Battery level alert cleared: Battery level is %d%% on %s.", level, hostname))
+				AlertSend = false
+			}
 			if level <= config.Threshold {
 				log.Printf("Battery level critical: %d%%", level)
-				hostname, _ := os.Hostname()
 				sendEmail(*config, fmt.Sprintf("Battery level is %d%%. System %s shutdown is starting.", level, hostname))
 				shutdownSystem()
 				break

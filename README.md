@@ -52,6 +52,7 @@ modbus:
 
 threshold: 20               # Battery level shutdown threshold (%)
 poll_interval: 30           # Time between polling cycles in seconds.
+alertthreshold: 85          # Battery level email alert threshold (%)
 log_file: "modbus-shutdown.log"
 
 email:
