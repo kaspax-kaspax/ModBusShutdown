@@ -55,11 +55,41 @@ func loadConfig(path string) (*Config, error) {
 	return &config, nil
 }
 
+// Chech if the grid configured to be monitored
 func isGridMonitored(config *Config) bool {
 	if config.Modbus.InputRegister == 0 || config.Modbus.NotConnectedRegister == 0 {
 		return false
 	}
 	return true
+}
+
+// Check if the grid is connected or not
+func readGridState(client modbus.Client, register uint16, regType string, NotConnectedRegister uint16) (bool, error) {
+	var result []byte
+	var err error
+
+	switch regType {
+	case "input":
+		result, err = client.ReadInputRegisters(register, 1)
+	case "holding":
+		result, err = client.ReadHoldingRegisters(register, 1)
+	default:
+		return false, fmt.Errorf("invalid register_type: %s", regType)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(result) < 2 {
+		return false, fmt.Errorf("invalid response length")
+	}
+
+	value := binary.BigEndian.Uint16(result)
+	if value == NotConnectedRegister {
+		return false, nil
+	}
+	return true, nil
 }
 
 func setupLogging(file string) {
@@ -141,34 +171,6 @@ func readBatteryLevel(client modbus.Client, register uint16, regType string) (in
 	return int(value), nil
 }
 
-func readGridState(client modbus.Client, register uint16, regType string, NotConnectedRegister uint16) (bool, error) {
-	var result []byte
-	var err error
-
-	switch regType {
-	case "input":
-		result, err = client.ReadInputRegisters(register, 1)
-	case "holding":
-		result, err = client.ReadHoldingRegisters(register, 1)
-	default:
-		return false, fmt.Errorf("invalid register_type: %s", regType)
-	}
-
-	if err != nil {
-		return false, err
-	}
-
-	if len(result) < 2 {
-		return false, fmt.Errorf("invalid response length")
-	}
-
-	value := binary.BigEndian.Uint16(result)
-	if value == NotConnectedRegister {
-		return false, nil
-	}
-	return true, nil
-}
-
 func main() {
 	testMode := flag.Bool("test", false, "Run in test mode (single Modbus check and email alert)")
 	testModeMail := flag.Bool("testmail", false, "Run in test mode (check email alert)")
@@ -213,10 +215,11 @@ func main() {
 		runTestModeModbuss(config, client)
 		return
 	}
-
-	if runColdStartMode(config, client) {
-		log.Println("Cold start recovery successful. Skipping shutdown loop.")
-		return
+	if isGridMonitored(config) {
+		if runColdStartMode(config, client) {
+			log.Println("Cold start recovery successful. Skipping shutdown loop.")
+			return
+		}
 	}
 
 	var AlertSet bool
@@ -225,10 +228,44 @@ func main() {
 	} else {
 		AlertSet = true
 	}
+
 	AlertSend := false
 	hostname, _ := os.Hostname()
+	var lastGridStatus bool
+	if isGridMonitored(config) {
+		lastGridStatus = true
+	} else {
+		lastGridStatus = false
+	}
 
 	for {
+		if isGridMonitored(config) {
+			log.Println("Checking grid status...")
+			gridStatus, err := readGridState(client, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
+			if err != nil {
+				log.Printf("Error reading grid status: %v", err)
+				lastGridStatus = false
+			} else {
+				if gridStatus {
+					log.Println("Grid is connected.")
+					if !lastGridStatus {
+						log.Println("Grid status changed to connected.")
+						sendEmail(*config, fmt.Sprintf("Grid status changed to connected on %s.", hostname))
+					}
+					lastGridStatus = true
+				}
+				if !gridStatus {
+					log.Println("Grid is not connected.")
+					if lastGridStatus {
+						log.Println("Grid status changed to not connected.")
+						sendEmail(*config, fmt.Sprintf("Grid status changed to not connected on %s.", hostname))
+					}
+					lastGridStatus = false
+				}
+			}
+
+		}
+
 		log.Println("Checking battery level...")
 		level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 		if err != nil {
@@ -246,7 +283,7 @@ func main() {
 				sendEmail(*config, fmt.Sprintf("Battery level alert cleared: Battery level is %d%% on %s.", level, hostname))
 				AlertSend = false
 			}
-			if level <= config.Threshold {
+			if level <= config.Threshold && !lastGridStatus {
 				log.Printf("Battery level critical: %d%%", level)
 				sendEmail(*config, fmt.Sprintf("Battery level is %d%%. System %s shutdown is starting.", level, hostname))
 				shutdownSystem()
