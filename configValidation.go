@@ -24,8 +24,11 @@ func validateConfig(cfg *Config) error {
 	}
 
 	// Alert Battery threshold
-	if cfg.AlertThreshold <= 0 || cfg.Threshold > 100 {
-		return fmt.Errorf("threshold must be between 1 and 100")
+	if cfg.AlertThreshold < 0 || cfg.Threshold > 100 {
+		return fmt.Errorf("alert threshold must be between 1 and 100 or empty (disabled)")
+	}
+	if cfg.AlertThreshold != 0 && cfg.AlertThreshold <= cfg.Threshold {
+		return fmt.Errorf("alert threshold must be greater than threshold or empty (disabled)")
 	}
 
 	// Poll interval

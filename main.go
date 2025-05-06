@@ -182,6 +182,12 @@ func main() {
 		return
 	}
 
+	var AlertSet bool
+	if config.AlertThreshold == 0 {
+		AlertSet = false
+	} else {
+		AlertSet = true
+	}
 	AlertSend := false
 	hostname, _ := os.Hostname()
 
@@ -192,12 +198,12 @@ func main() {
 			log.Printf("Error reading battery level: %v", err)
 		} else {
 			log.Printf("Battery level: %d%%", level)
-			if level <= config.AlertThreshold && !AlertSend {
+			if level <= config.AlertThreshold && AlertSet && !AlertSend {
 				log.Printf("Battery level alert: %d%%", level)
 				sendEmail(*config, fmt.Sprintf("Battery level alert: Battery level is %d%% on %s.", level, hostname))
 				AlertSend = true
 			}
-			if level > config.AlertThreshold && AlertSend {
+			if level > config.AlertThreshold && AlertSet && AlertSend {
 				log.Printf("Battery level alert cleared: %d%%", level)
 
 				sendEmail(*config, fmt.Sprintf("Battery level alert cleared: Battery level is %d%% on %s.", level, hostname))
