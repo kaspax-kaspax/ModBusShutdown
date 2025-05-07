@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/goburrow/modbus"
@@ -119,14 +118,19 @@ func sendEmail(cfg Config, message string) error {
 		auth = smtp.PlainAuth("", cfg.Email.Username, cfg.Email.Password, cfg.Email.SMTPServer)
 	}
 
-	msg := []byte("To: " + strings.Join(cfg.Email.To, ", ") + "\r\n" +
-		"Subject: " + cfg.Email.Subject + "\r\n" +
-		"\r\n" + message + "\r\n")
+	for _, recipient := range cfg.Email.To {
+		msg := []byte("MIME-Version: 1.0\r\n" +
+			"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
+			"To: " + recipient + "\r\n" +
+			"Subject: " + cfg.Email.Subject + "\r\n" +
+			"\r\n" + message + "\r\n")
 
-	err := smtp.SendMail(addr, auth, cfg.Email.From, cfg.Email.To, msg)
-
-	if err != nil {
-		return fmt.Errorf("email failed: %w", err)
+		err := smtp.SendMail(addr, auth, cfg.Email.From, []string{recipient}, msg)
+		if err != nil {
+			log.Printf("Failed to send to %s: %v", recipient, err)
+		} else {
+			log.Printf("Email sent to %s", recipient)
+		}
 	}
 
 	return nil
