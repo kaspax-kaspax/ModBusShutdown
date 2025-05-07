@@ -241,6 +241,7 @@ func main() {
 	}
 
 	for {
+		//Grid status check
 		if isGridMonitored(config) {
 			log.Println("Checking grid status...")
 			gridStatus, err := readGridState(client, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
@@ -267,7 +268,7 @@ func main() {
 			}
 
 		}
-
+		//Battery level check
 		log.Println("Checking battery level...")
 		level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 		if err != nil {
