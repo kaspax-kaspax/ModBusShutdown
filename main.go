@@ -64,21 +64,29 @@ func isGridMonitored(config *Config) bool {
 }
 
 // Check if the grid is connected or not
-func readGridState(client modbus.Client, register uint16, regType string, NotConnectedRegister uint16) (bool, error) {
-	var result []byte
-	var err error
-
-	switch regType {
-	case "input":
-		result, err = client.ReadInputRegisters(register, 1)
-	case "holding":
-		result, err = client.ReadHoldingRegisters(register, 1)
-	default:
-		return false, fmt.Errorf("invalid register_type: %s", regType)
+func readGridState(client modbus.Client, handler *modbus.TCPClientHandler, register uint16, regType string, notConnectedValue uint16) (bool, error) {
+	read := func() ([]byte, error) {
+		switch regType {
+		case "input":
+			return client.ReadInputRegisters(register, 1)
+		case "holding":
+			return client.ReadHoldingRegisters(register, 1)
+		default:
+			return nil, fmt.Errorf("invalid register_type: %s", regType)
+		}
 	}
 
+	result, err := read()
 	if err != nil {
-		return false, err
+		log.Printf("Grid read failed: %v. Attempting reconnect...", err)
+		handler.Close()
+		if err := handler.Connect(); err != nil {
+			return false, fmt.Errorf("grid reconnect failed: %w", err)
+		}
+		result, err = read()
+		if err != nil {
+			return false, fmt.Errorf("grid read failed after reconnect: %w", err)
+		}
 	}
 
 	if len(result) < 2 {
@@ -86,10 +94,7 @@ func readGridState(client modbus.Client, register uint16, regType string, NotCon
 	}
 
 	value := binary.BigEndian.Uint16(result)
-	if value == NotConnectedRegister {
-		return false, nil
-	}
-	return true, nil
+	return value != notConnectedValue, nil
 }
 
 func setupLogging(file string) {
@@ -152,21 +157,30 @@ func shutdownSystem() {
 	}
 }
 
-func readBatteryLevel(client modbus.Client, register uint16, regType string) (int, error) {
-	var result []byte
-	var err error
-
-	switch regType {
-	case "input":
-		result, err = client.ReadInputRegisters(register, 1)
-	case "holding":
-		result, err = client.ReadHoldingRegisters(register, 1)
-	default:
-		return 0, fmt.Errorf("invalid register_type: %s", regType)
+func readBatteryLevel(client modbus.Client, handler *modbus.TCPClientHandler, register uint16, regType string) (int, error) {
+	read := func() ([]byte, error) {
+		switch regType {
+		case "input":
+			return client.ReadInputRegisters(register, 1)
+		case "holding":
+			return client.ReadHoldingRegisters(register, 1)
+		default:
+			return nil, fmt.Errorf("invalid register_type: %s", regType)
+		}
 	}
 
+	result, err := read()
 	if err != nil {
-		return 0, err
+		log.Printf("Read failed: %v. Attempting reconnect...", err)
+		handler.Close()
+		if err := handler.Connect(); err != nil {
+			return 0, fmt.Errorf("reconnect failed: %w", err)
+		}
+		// retry once after reconnect
+		result, err = read()
+		if err != nil {
+			return 0, fmt.Errorf("read failed after reconnect: %w", err)
+		}
 	}
 
 	if len(result) < 2 {
@@ -210,7 +224,7 @@ func main() {
 	client := modbus.NewClient(handler)
 
 	if *testMode {
-		runTestMode(config, client)
+		runTestMode(config, client, handler)
 		return
 	}
 	if *testModeMail {
@@ -218,11 +232,11 @@ func main() {
 		return
 	}
 	if *testModeModbus {
-		runTestModeModbuss(config, client)
+		runTestModeModbuss(config, client, handler)
 		return
 	}
 	if isGridMonitored(config) {
-		if runColdStartMode(config, client) {
+		if runColdStartMode(config, client, handler) {
 			log.Println("Cold start recovery successful. Skipping shutdown loop.")
 			return
 		}
@@ -248,7 +262,7 @@ func main() {
 		//Grid status check
 		if isGridMonitored(config) {
 			log.Println("Checking grid status...")
-			gridStatus, err := readGridState(client, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
+			gridStatus, err := readGridState(client, handler, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
 			if err != nil {
 				log.Printf("Error reading grid status: %v", err)
 				lastGridStatus = false
@@ -274,7 +288,7 @@ func main() {
 		}
 		//Battery level check
 		log.Println("Checking battery level...")
-		level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
+		level, err := readBatteryLevel(client, handler, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 		if err != nil {
 			log.Printf("Error reading battery level: %v", err)
 		} else {

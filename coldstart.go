@@ -45,8 +45,8 @@ func getUptimeWindows() (float64, error) {
 	return float64(uptimeMillis) / 1000.0, nil
 }
 
-func runColdStartMode(config *Config, client modbus.Client) bool {
-	level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
+func runColdStartMode(config *Config, client modbus.Client, handler *modbus.TCPClientHandler) bool {
+	level, err := readBatteryLevel(client, handler, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 	if err != nil {
 		log.Printf("Error reading battery level: %v", err)
 		return false
@@ -70,7 +70,7 @@ func runColdStartMode(config *Config, client modbus.Client) bool {
 			maxWait := 15 * time.Minute
 
 			for {
-				level, err = readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
+				level, err := readBatteryLevel(client, handler, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 				if err != nil {
 					log.Printf("Error reading battery level: %v", err)
 					return false

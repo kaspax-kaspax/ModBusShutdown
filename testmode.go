@@ -7,10 +7,10 @@ import (
 	"github.com/goburrow/modbus"
 )
 
-func runTestMode(config *Config, client modbus.Client) {
+func runTestMode(config *Config, client modbus.Client, handler *modbus.TCPClientHandler) {
 	log.Println("Running in test mode...")
 
-	level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
+	level, err := readBatteryLevel(client, handler, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 	if err != nil {
 		log.Fatalf("Test failed: could not read battery level: %v", err)
 	}
@@ -21,7 +21,7 @@ func runTestMode(config *Config, client modbus.Client) {
 	if !isGridMonitored(config) {
 		gridStatus = "Not monitored"
 	} else {
-		gridState, err := readGridState(client, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
+		gridState, err := readGridState(client, handler, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
 		if err != nil {
 			log.Fatalf("Test failed: could not read grid state: %v", err)
 		}
@@ -53,10 +53,10 @@ func runTestModeMail(config *Config) {
 	log.Println("!!! TEST SUCCESS !!!")
 }
 
-func runTestModeModbuss(config *Config, client modbus.Client) {
+func runTestModeModbuss(config *Config, client modbus.Client, handler *modbus.TCPClientHandler) {
 	log.Println("Running in test mode...")
 
-	level, err := readBatteryLevel(client, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
+	level, err := readBatteryLevel(client, handler, config.Modbus.BatteryRegister, config.Modbus.RegisterType)
 	if err != nil {
 		log.Fatalf("Test failed: could not read battery level: %v", err)
 	}
@@ -66,7 +66,7 @@ func runTestModeModbuss(config *Config, client modbus.Client) {
 	if !isGridMonitored(config) {
 		gridStatus = "Not monitored"
 	} else {
-		gridState, err := readGridState(client, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
+		gridState, err := readGridState(client, handler, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
 		if err != nil {
 			log.Fatalf("Test failed: could not read grid state: %v", err)
 		}
