@@ -265,7 +265,6 @@ func main() {
 			gridStatus, err := readGridState(client, handler, config.Modbus.InputRegister, config.Modbus.RegisterType, config.Modbus.NotConnectedRegister)
 			if err != nil {
 				log.Printf("Error reading grid status: %v", err)
-				lastGridStatus = false
 			} else {
 				if gridStatus {
 					log.Println("Grid is connected.")
